@@ -16,30 +16,28 @@ art = """....      ..                                                           
         88                          '8>             ./"
         ""                           "             ~`"""
 
-
-def wave_art(delay=0.02):
+def wave_art(delay=0.07):
     shades_of_yellow_ansi = {
-        "bright_yellow" : "\033[38;5;226m {}\033[00m",
-        "orange_yellow" : "\033[38;5;220m {}\033[00m",
-        "banana_yellow" : "\033[38;5;227m {}\033[00m",
-        "pale_yellow" : "\033[38;5;228m {}\033[00m",
-        "very_light_yellow" : "\033[38;5;229m {}\033[00m"
+        "bright_yellow" : "\033[38;5;226m",
+        "orange_yellow" : "\033[38;5;220m",
+        "banana_yellow" : "\033[38;5;227m",
+        "pale_yellow" : "\033[38;5;228m",
+        "very_light_yellow" : "\033[38;5;229m",
     }
+    reset_color = "\033[00m"
     shades_of_yellow_ansi_random = random.choice(list(shades_of_yellow_ansi.values()))
- 
-    def prYellow(s): print((shades_of_yellow_ansi_random).format(s))  
+    
+    print(shades_of_yellow_ansi_random)
     lines = art.splitlines()
     t = 0
-    for _ in range(29):
-        os.system('cls' if os.name=='nt' else 'clear')
+    for _ in range(57):
+        print("\033[2J\033[H", end=" ")
         for j, line in enumerate(lines):
-            # wave offset using sine
             offset = int(5 * math.sin(t + j * 0.5))
-            prYellow(" " * offset + line)
-            pass
+            print(" " * (offset + 5) + line)
         time.sleep(delay)
         t += 0.3
-
-    
-
-wave_art(delay=0.05)
+    print("\033[2J\033[H", end='')
+    os.system('cls' if os.name=='nt' else 'clear')
+    for line in lines:
+        print(line)
