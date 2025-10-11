@@ -15,6 +15,7 @@ import cloudscraper
 import requests
 import sys
 
+
 colors = {
     "gold": "\033[38;5;220m", "very_light_yellow": "\033[38;5;229m", "turquoise": "\033[38;5;44m", "clay_red": "\033[38;5;160m", "coyote_brown": "\033[38;2;125;91;63m", "cactus_green": "\033[38;2;107;142;35m", "golden_dune": "\033[38;2;218;165;105m", "sahara_beige": "\033[38;2;244;196;153m",
     "neon_oasis": "\033[38;2;0;255;200m", "neon_cactus": "\033[38;2;57;255;20m", "neon_sky": "\033[38;2;0;191;255m", "neon_dusk": "\033[38;2;138;43;226m", "neon_heatwave": "\033[38;2;255;94;0m", "neon_bloodmoon": "\033[38;2;255;36;0m", "neon_scorch": "\033[38;2;255;255;0m", "neon_flare": "\033[38;2;255;20;147m",
@@ -66,6 +67,146 @@ def papyrus_logo():
 """)
 
 
+
+def scribere():
+    site_link = "https://oceanofpdf.com/?s="
+    #SEARCH FOR BOOK TITLES
+    search_query = input("\033[38;2;255;127;80m➤ Search Book Name (e = exit | h = home): \033[0m").replace(' ','+').strip().lower()
+    if len(search_query) == 0:
+              main()
+    elif search_query == 'e':
+              exit()
+    elif search_query == 'h':
+              return 'back'
+    else:
+        search_url = site_link + search_query.replace(' ', "+")
+
+        #SCRAPE INFO
+        chrome_options = Options()
+        chrome_options.add_argument("--headless=new") 
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-notifications")
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")  
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"]) 
+        service = Service(log_path="NUL") 
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.get(search_url)
+        time.sleep(5)
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        book_elements = soup.select("article[aria-label]")
+        book_infos = soup.select("div.postmetainfo")
+        book_w_link = []
+        for article in book_elements:
+            dl_element = article.select_one('a.entry-image-link')
+            dl_link = dl_element.get('href') if dl_element else None
+
+            book_w_link.append(dl_link)
+        driver.quit()
+
+        #SHOWING BOOK TITLES
+        print(f'''\n{colors['phoenix_orange']}══════════════════════════════════════════════════════════════════════════════════
+Literature Scan Results...
+══════════════════════════════════════════════════════════════════════════════════{reset_color}''')
+        for num, (book_title, info, dl_link) in enumerate(zip(book_elements, book_infos, book_w_link),start=1):
+            title = (
+                book_title['aria-label']
+                .replace('Download', '')
+                .replace('[PDF]', '')
+                .replace('[EPUB]', '')
+                .strip()
+            )
+            book_metadata = info.get_text(strip=True,  separator=" ")
+            print(f"\n  {colors['pine_green']}└─ [{colors['rose_gold']}{num}{colors['pine_green']}] {colors['plasma_pink']}{title}{colors['pine_green']}\n    {colors['topaz_yellow']}{book_metadata}{reset_color}")
+
+            #CONFIRM BOOK EXISTENCE
+        if len(book_w_link) > 0:
+                print(f"""\n\n{colors['mint_fresh']}   [✓] Scan complete: Biblia extracted {reset_color}
+    {colors['plasma_pink']}[✓] All files can be downloaded{reset_color}""")
+        else:
+                print(f"""{colors['blood_orange']} \nNo books found.""")
+        user_book_num_input = input(f"\n{colors['neon_starlight']}➤   Enter Book # (e = exit | r = refresh | h = home):{reset_color} ").strip().lower()
+        match user_book_num_input:
+                case 'e':
+                    exit
+                case 'r':
+                    main()
+                case 'h':
+                    return 'back'
+                case ' ':
+                    main()
+            #SCRAPE DOWNLOADABLE LINK
+        user_book_num_index = int(user_book_num_input) - 1
+            
+        chrome_options = Options()
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-notifications")
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        download_dir = os.path.abspath("Papyrus_Files")
+        prefs = {
+                "download.default_directory": download_dir,
+                "download.prompt_for_download": False,
+                "plugins.always_open_pdf_externally": True,
+                "download.directory_upgrade": True,
+                "safebrowsing.enabled": True
+            }
+        chrome_options.add_experimental_option("prefs", prefs)
+            
+        service = Service(log_path="NUL") 
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.minimize_window()
+        driver.get(book_w_link[user_book_num_index])
+        time.sleep(5)
+        
+        try:
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                filename_input = soup.find('input', {'name': 'filename'})
+                pdf_filename = filename_input.get('value') if filename_input else None
+                
+                if pdf_filename:
+                    original_window = driver.current_window_handle
+                    driver.find_element(By.CSS_SELECTOR, "input[alt='Submit']").click()
+                    
+                    time.sleep(3)
+                    for window_handle in driver.window_handles:
+
+                        if window_handle != original_window:
+
+                            driver.switch_to.window(window_handle)
+                            break
+                    
+                    print(f"{colors['neon_oasis']}(Wait Time: 45sec) Downloading...{reset_color}")
+                    time.sleep(45)
+                    
+                    print(f"{colors['jade_green']}✅ Download complete. Check Papyrus_Files folder.{reset_color}")
+                else:
+                    print(f"{colors['blood_orange']}❌ Could not find filename in form{reset_color}")
+                    
+        except Exception as e:
+                print(f"{colors['blood_orange']}❌ Download error: {e}{reset_color}")
+        finally:
+              driver.quit()
+              return main()
+            
+        
+def main():
+    os.system('cls' if os.name=='nt' else 'clear')
+    papyrus_logo()
+    print('\n')
+    result = create_folder()
+    return result
+
 def create_folder():
     global colors, reset_color
     folder_name = 'Papyrus_Files'
@@ -80,88 +221,5 @@ def create_folder():
         print(f'✅{colors['jade_green']}Folder exists. {reset_color}', end='\r')   
         pass
     time.sleep(1)
-    scribere()
-
-def scribere():
-    site_link = "https://oceanofpdf.com/?s="
-    #SEARCH FOR BOOK TITLES
-    search_query = input("\033[38;2;255;127;80m➤ Search Book Name: \033[0m").replace(' ','+')
-    search_url = site_link + search_query.replace(' ', "+")
-
-    #SCRAPE INFO
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new") 
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-notifications")
-    chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")  
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"]) 
-    service = Service(log_path="NUL") 
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    driver.get(search_url)
-    time.sleep(5)
-    soup = BeautifulSoup(driver.page_source, "html.parser")
-    book_elements = soup.select("article[aria-label]")
-    book_infos = soup.select("div.postmetainfo")
-    book_w_link = []
-    for article in book_elements:
-        dl_element = article.select_one('a.entry-image-link')
-        dl_link = dl_element.get('href') if dl_element else None
-
-        book_w_link.append(dl_link)
-    driver.quit()
-
-    #SHOWING BOOK TITLES
-    print(f'''\n{colors['phoenix_orange']}══════════════════════════════════════════════════════════════════════════════════
-Literature Scan Results...
-══════════════════════════════════════════════════════════════════════════════════{reset_color}''')
-    for num, (book_title, info, dl_link) in enumerate(zip(book_elements, book_infos, book_w_link),start=1):
-        title = (
-            book_title['aria-label']
-            .replace('Download', '')
-            .replace('[PDF]', '')
-            .replace('[EPUB]', '')
-            .strip()
-        )
-        book_metadata = info.get_text(strip=True,  separator=" ")
-        
-
-        print(f"\n  {colors['pine_green']}└─ [{colors['rose_gold']}{num}{colors['pine_green']}] {colors['plasma_pink']}{title}{colors['pine_green']}\n    {colors['topaz_yellow']}{book_metadata}{reset_color}")
-
-    print(f"""\n\n{colors['mint_fresh']}   [✓] Scan complete: Biblia extracted {reset_color}
-   {colors['plasma_pink']}[✓] All files can be downloaded{reset_color}""")
-    user_book_num_input = input(f"\n{colors['neon_starlight']}➤   Enter Book # (e = exit):{reset_color} ")
-    match user_book_num_input:
-        case 'e':
-              os.system('cls' if os.name=='nt' else 'clear')
-              exit
-        case '1':
-              webbrowser.open_new(book_w_link[0])
-        case '2':
-              webbrowser.open_new(book_w_link[1])
-        case '3':
-              webbrowser.open_new(book_w_link[2])
-        case '4':
-              webbrowser.open_new(book_w_link[3])
-        case '5':
-              webbrowser.open_new(book_w_link[4])
-        case '6':
-              webbrowser.open_new(book_w_link[5])
-        case '7':
-              webbrowser.open_new(book_w_link[6])
-        
-        
-
-
-
-
-def main():
-    os.system('cls' if os.name=='nt' else 'clear')
-    papyrus_logo()
-    print('\n')
-    create_folder()
+    result = scribere()
+    return result
