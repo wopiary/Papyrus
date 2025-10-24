@@ -69,16 +69,16 @@ def papyrus_logo():
 
 
 def scribere():
-    site_link = "https://oceanofpdf.com/?s="
-    #SEARCH FOR BOOK TITLES
-    search_query = input("\033[38;2;255;127;80m➤ Search Book Name (e = exit | h = home): \033[0m").replace(' ','+').strip().lower()
-    if len(search_query) == 0:
-              main()
-    elif search_query == 'e':
-              exit()
-    elif search_query == 'h':
-              return 'back'
-    else:
+        site_link = "https://oceanofpdf.com/?s="
+        #SEARCH FOR BOOK TITLES
+        search_query = input("\033[38;2;255;127;80m➤ Search Book Name (e = exit | h = home): \033[0m").replace(' ','+').strip().lower()
+    # if len(search_query) == 0:
+    #           main()
+    # elif search_query == 'e':
+    #           exit()
+    # elif search_query == 'h':
+    #           return 'back'
+    # else:
         search_url = site_link + search_query.replace(' ', "+")
 
         #SCRAPE INFO
@@ -187,7 +187,7 @@ Literature Scan Results...
                             break
                     
                     print(f"{colors['neon_oasis']}(Wait Time: 45sec) Downloading...{reset_color}")
-                    time.sleep(45)
+                    time.sleep(45) #GWT ACTUAL WAIT TIME AND SET HERE
                     
                     print(f"{colors['jade_green']}✅ Download complete. Check Papyrus_Files folder.{reset_color}")
                 else:
