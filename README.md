@@ -1,7 +1,7 @@
 Papyrus is a lightweight Python utility designed to streamline the process of finding and downloading PDF versions of your favorite books.
 
 	Disclaimer: This tool does not own or host any of the materials provided. Papyrus is a scraping utility that aggregates 	publicly available links from the web for research and personal use.
-=====================================
+
 :: 🛠 Prerequisites ::
 To ensure Papyrus runs smoothly, you’ll need to have the following installed on your system:
 -Python 3.x: Ensure Python is added to your system PATH during installation.
@@ -12,7 +12,7 @@ To ensure Papyrus runs smoothly, you’ll need to have the following installed o
 		Bash
 		pip install selenium beautifulsoup4 windows-curses
 		(Note: windows-curses is required specifically for Windows users; Linux/Mac users generally have curses built-in.)
-=====================================
+
 :: 🚀 Getting Started  ::
 Follow these steps to get Papyrus up and running:
 Download the Project: Download the repository as a ZIP file and extract it to your preferred location.
